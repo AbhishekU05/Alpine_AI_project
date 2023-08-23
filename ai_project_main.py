@@ -6,6 +6,7 @@ import wikipedia
 import webbrowser
 import randfacts
 import pyjokes
+from AppOpener import open, close
 import tkinter as tk
 from threading import Thread
 
@@ -43,27 +44,50 @@ def listenForCommand(modl):
         print("Recognizing...")
         query = r.recognize_google(audio, language='en-in')
         print(f"User said: {query}")
-        if modl == "wiki":
+        if modl == "re":
             return query
         elif modl == "report":
             processReport(query.lower())
         else:
             processCommand(query.lower())
     except Exception as e:
+        print(e)
         print("Say that again please...")
         speak("Say that again please...")
         listenForCommand("loop")
 
 
 def openGoogle():
-    speak("Opening Google...")
-    webbrowser.get(chrome_path).open("https://www.google.com")
-    insrt_table("google")
+    speak("What would you like to search")
+    search = listenForCommand("re")
+    search = search.replace(' ','+')
+    webbrowser.get(chrome_path).open("https://www.google.co.in/search?q="+search)
+    insrt_table("google:",search)
+
+
+def openApp():
+    speak("Which app would you like to open")
+    search = listenForCommand("re")
+    search = search.lower()
+    open(search, match_closest=True)
+    speak("Opening", search)
+    print("Opening", search)
+    insrt_table("open",search)
+
+
+def closeApp():
+    speak("Which app would you like to close")
+    search = listenForCommand("re")
+    search = search.lower()
+    close(search, match_closest=True)
+    speak("Closing", search)
+    print("Closing", search)
+    insrt_table("close", search)
 
 
 def searchWikipedia(command):
     speak('What would you like to search on Wikipedia?')
-    query = listenForCommand("wiki")
+    query = listenForCommand("re")
     speak('Searching Wikipedia...')
     results = wikipedia.summary(query, sentences=2)
     speak("According to Wikipedia")
@@ -71,7 +95,7 @@ def searchWikipedia(command):
     speak(results)
     update_command = 'INSERT INTO COMMAND_CENTRE VALUES(%d,"%s","%s");' % (
         datetime.datetime.now().timestamp(), command, query.lower())
-    print(update_command)
+    #print(update_command)
     cur.execute(update_command)
     cur.execute('commit')
 
@@ -79,7 +103,7 @@ def searchWikipedia(command):
 def insrt_table(cmd):
     update_command = 'INSERT INTO COMMAND_CENTRE VALUES(%d,"%s",NULL);' % (
         datetime.datetime.now().timestamp(), cmd)
-    print(update_command)
+    #print(update_command)
     cur.execute(update_command)
     cur.execute('commit')
 
@@ -124,6 +148,14 @@ def getDate():
     insrt_table("date")
 
 
+def thankExit():
+    speak("Welcome. Have a nice day. Bye")
+    print("Welcome. Have a nice day. Bye")
+    cur.close()
+    con.close()
+    exit()
+
+
 def showReport():
     speak('Choose report you would like to see from the following options')
     print('Choose report you would like to see from the following options:')
@@ -138,7 +170,7 @@ def processReport(command):
     if any(ext in command for ext in ['full data', 'command', 'topic']):
         update_command = 'INSERT INTO COMMAND_CENTRE VALUES(%d,"report","%s");' % (
             datetime.datetime.now().timestamp(), command)
-        print(update_command)
+        #print(update_command)
         cur.execute(update_command)
         cur.execute('commit')
 
@@ -179,51 +211,26 @@ def processCommand(command):
         "open google": "openGoogle()",
         'play music': 'playMusic()',
         'play song': 'playMusic()',
+        'open app': 'openApp()',
+        'close app': 'closeApp()',
         'the time': 'getTime()',
         'date': 'getDate()',
         'report': 'showReport()',
         'joke': 'tellJoke()',
         'fact': 'tellFact()',
-        'exit': 'exit()'
+        'exit': 'exit()',
+        'thank you': 'thankExit()'
     }
+
+    flag = False
 
     for key in commands:
         if (key in command):
             eval(commands[key])
+            flag = True
 
-    if 'wikipedia' in command:
-        searchWikipedia(command)
-    elif 'open youtube' in command:
-        openYouTube()
-    elif 'open google' in command:
-        openGoogle()
-    elif 'play music' in command or 'play song' in command:
-        playMusic()
-    elif 'the time' in command:
-        getTime()
-    elif 'date' in command:
-        getDate()
-    elif 'report' in command:
-        showReport()
-    elif 'joke' in command:
-        tellJoke()
-    elif 'fact' in command:
-        tellFact()
-    elif 'exit' in command:
-        cur.close()
-        con.close()
-        exit()
-    elif 'thank you' in command:
-        speak("Welcome. Have a nice day. Bye")
-        print("Welcome. Have a nice day. Bye")
-        cur.close()
-        con.close()
-        exit()
-    else:
+    if flag == False:
         speak("Sorry, I didn't understand that.")
-
-
-processCommand("open google")
 
 
 def startListening():
@@ -231,10 +238,10 @@ def startListening():
         listenForCommand("loop")
 
 
+#connecting mySQL
 try:
-    # con=sql.connect(host='localhost',user='root',password='1234',database='SR_SEARCH_HISTORY')
     con = sql.connect(host='localhost', user='root', password='1234')
-    print('Connected with mySQL database')
+    print('Connected with mySQL')
 except Exception as e:
     print('Database not connected.... Exiting')
     print('Error:', e)
@@ -250,17 +257,19 @@ except:
 try:
     cur.execute('SHOW TABLES;')
     data = cur.fetchall()
-    print(data)
+    # print(data)
     if ('command_centre',) not in data:
-        print("created")
+        # print("created")
         cur.execute(
             "CREATE TABLE COMMAND_CENTRE(EXE_TIME BIGINT PRIMARY KEY, COMMAND_NAME VARCHAR(30), SUBCOMMAND VARCHAR(30));")
 except Exception as e:
-    print("Error:", e)
+    print("Error", e)
+
 
 # Create the main window
 window = tk.Tk()
 window.title("Friday Assistant")
+
 
 # Create and position the GUI components
 label = tk.Label(window, text="Press the 'Speak' button and give a command:")
@@ -272,6 +281,7 @@ speak_button.pack()
 
 showreport_button = tk.Button(window, text="Show report", command=showReport)
 showreport_button.pack()
+
 
 # Run the GUI main loop
 wishMe()

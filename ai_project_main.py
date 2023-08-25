@@ -112,6 +112,40 @@ def openYouTube():
     speak("Opening YouTube...")
     webbrowser.get(chrome_path).open("https://www.youtube.com")
     insrt_table("youtube")
+import requests
+
+def get_weather(city, api_key):
+    base_url = "http://api.weatherstack.com/current"
+    params = {
+        "access_key": api_key,
+        "query": city
+    }
+
+    response = requests.get(base_url, params=params)
+    data = response.json()
+
+    if "error" in data:
+        print("Error:", data["error"]["info"])
+        return None
+
+    temperature = data["current"]["temperature"]
+    weather_description = data["current"]["weather_descriptions"][0]
+
+    return temperature, weather_description
+
+if __name__ == "__main__":
+    api_key = "6cf345bdb3238dcc59d4d0878b3ad803"  # Replace with your actual API key
+    city = input("Enter the city name: ")
+
+    weather_data = get_weather(city, api_key)
+
+    if weather_data:
+        temperature, description = weather_data
+        print(f"Temperature in {city}: {temperature}°C")
+        print(f"Weather Description in {city}: {description}")
+    else:
+        print("Weather information not available.")
+        
 
 
 def tellJoke():

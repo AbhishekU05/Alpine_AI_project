@@ -8,6 +8,8 @@ import randfacts
 import pyjokes
 from AppOpener import open, close
 import tkinter as tk
+from pathlib import Path
+from tkinter import Tk, Canvas, Button, PhotoImage
 import tkinter.scrolledtext as st
 from threading import Thread
 
@@ -21,35 +23,97 @@ class voice_assist():
         self.voices = self.engine.getProperty('voices')
         self.engine.setProperty('voice', self.voices[0].id)
 
+        
+        self.OUTPUT_PATH = Path(__file__).parent
+        self.ASSETS_PATH = self.OUTPUT_PATH / Path(r"D:\Abhi Data\Data\Programming\AI\Assets")
+        
 
-        # Create the main window
-        self.window = tk.Tk()
+        #TK!
+        self.window = Tk()
+        
+        self.window.geometry("600x400")
+        self.window.configure(bg="#404040")
         self.window.title("Friday Assistant")
         
+        self.canvas = Canvas(
+            self.window,
+            bg = "#404040",
+            height = 400,
+            width = 600,
+            bd = 0,
+            highlightthickness = 0,
+            relief = "ridge"
+        )
         
-        # Create and position the GUI components (TK)
-        self.label = tk.Label(
-            self.window, text="Press the 'Speak' button and give a command:")
-        self.label.pack()
+        self.canvas.place(x=0, y=0)
+        self.image_image_1 = PhotoImage(
+            file=self.relative_to_assets("image_1.png"))
+        self.image_1 = self.canvas.create_image(
+            300.0,
+            200.0,
+            image=self.image_image_1
+        )
         
-        self.speak_button = tk.Button(self.window, text="Speak",
-                                 command=lambda: Thread(target=self.startListening).start())
-        self.speak_button.pack()
-        
-        self.showreport_button = tk.Button(
-            self.window, text="Show report", command=self.showReport)
-        self.showreport_button.pack()
-        
+        self.text_image = PhotoImage(
+            file=self.relative_to_assets("entry_1.png"))
+        self.entry_bg_1 = self.canvas.create_image(
+            299.5,
+            332.5,
+            image=self.text_image
+        )
         self.text_area = st.ScrolledText(
-            self.window, width=30, height=8, font=("Times New Roman", 15))
-        self.text_area.pack()
-        self.text_area.configure(state='disabled')
+            bd=0,
+            bg="#292929",
+            fg="#ffffff",
+            highlightthickness=0,
+            font=("Times New Roman", 10)
+        )
+        self.text_area.place(
+            x=12.0,
+            y=272.0,
+            width=575.0,
+            height=119.0
+        )
+        self.text_area.configure(state = 'disabled')
         
-
+        self.report_image = PhotoImage(
+            file=self.relative_to_assets("button_1.png"))
+        self.report_button = Button(
+            image=self.report_image,
+            borderwidth=0,
+            highlightthickness=0,
+            command=self.showReport,
+            relief="flat"
+        )
+        self.report_button.place(
+            x=563.0,
+            y=9.0,
+            width=25.0,
+            height=25.0
+        )
+        
+        self.speak_image = PhotoImage(
+            file=self.relative_to_assets("button_2.png"))
+        self.speak_button = Button(
+            image=self.speak_image,
+            borderwidth=0,
+            highlightthickness=0,
+            command=lambda: Thread(target=self.startListening).start(),
+            relief="flat"
+        )
+        self.speak_button.place(
+            x=247.0,
+            y=95.0,
+            width=105.0,
+            height=105.0
+        )
+        self.window.resizable(False, False)
+        
+        
         #connecting mySQL
         try:
             self.con = sql.connect(
-                host='localhost', user='root', password='1234')
+                host='localhost', user='root', password='Abhi0812')
             self.cons('Connected with mySQL')
         except Exception as e:
             self.cons('Database not connected.... Exiting')
@@ -76,8 +140,12 @@ class voice_assist():
         
         
         # Run the GUI main loop
-        self.wishMe()
+        #self.wishMe()
         self.window.mainloop()
+
+
+    def relative_to_assets(self, path: str) -> Path:
+        return self.ASSETS_PATH / Path(path)
 
        
     def cons(self, message):
@@ -134,6 +202,13 @@ class voice_assist():
             "https://www.google.co.in/search?q="+search)
         self.insrt_table("google:", search)
     
+
+    def openspGoogle(self, search):
+        search = search.replace(' ', '+')
+        webbrowser.get(self.chrome_path).open(
+            "https://www.google.co.in/search?q="+search)
+        self.insrt_table("google:", search)
+
     
     def openApp(self):
         self.speak("Which app would you like to open")
@@ -279,6 +354,7 @@ class voice_assist():
             "wikipedia": "self.searchWikipedia(command)",
             "open youtube": "self.openYouTube()",
             "open google": "self.openGoogle()",
+            "what is": 'self.openspGoogle(command)',
             'play music': 'self.playMusic()',
             'play song': 'self.playMusic()',
             'open app': 'self.openApp()',
@@ -310,4 +386,4 @@ class voice_assist():
     
 
 if __name__ == '__main__':
-    ai_project_main = voice_assist()
+    ai_project = voice_assist()

@@ -6,7 +6,7 @@ import wikipedia
 import webbrowser
 import randfacts
 import pyjokes
-import requests
+import pyown
 from AppOpener import open, close
 import tkinter as tk
 from threading import Thread
@@ -114,37 +114,36 @@ def openYouTube():
     webbrowser.get(chrome_path).open("https://www.youtube.com")
     insrt_table("youtube")
 
-def get_weather(city, api_key):
-    base_url = "http://api.weatherstack.com/current"
-    params = {
-        "access_key": api_key,
-        "query": city
-    }
+def weather():
+    owm = pyowm.OWM('6cf345bdb3238dcc59d4d0878b3ad803')  # Replace 'your_api_key' with your actual API key
 
-    response = requests.get(base_url, params=params)
-    data = response.json()
+    while True:
+        # Ask the user for the city
+        speak("Which city's weather do you want to know?")
+        city = listenForCommand("re")
 
-    if "error" in data:
-        print("Error:", data["error"]["info"])
-        return None
+        try:
+            observation = owm.weather_at_place(city)
+            weather_data = observation.get_weather()
+            temperature = weather_data.get_temperature(unit='celsius')['temp']
+            status = weather_data.get_status()
 
-    temperature = data["current"]["temperature"]
-    weather_description = data["current"]["weather_descriptions"][0]
+            # Print and speak the weather information
+            speak(f"Temperature in {city} is {temperature} degrees Celsius.")
+            speak(f"The weather in {city} is {status}.")
+            print(f"Temperature in {city} is {temperature} degrees Celsius.")
+            print(f"The weather in {city} is {status}.")
+            insrt_table("Weather")
+            break  # Exit the loop since weather information was found
 
-    return temperature, weather_description
+        except pyowm.exceptions.not_found_error.NotFoundError:
+            # Retry or exit
+            speak("Weather information not found for that city. Would you like to try another city?")
+            retry = listenForCommand("re")
+            if "no" in retry.lower():
+                speak("Alright, no weather information retrieved.")
+                break  # Exit the loop if the user doesn't want to try again
 
-if __name__ == "__main__":
-    api_key = "6cf345bdb3238dcc59d4d0878b3ad803"  # Replace with your actual API key
-    city = input("Enter the city name: ")
-
-    weather_data = get_weather(city, api_key)
-
-    if weather_data:
-        temperature, description = weather_data
-        print(f"Temperature in {city}: {temperature}°C")
-        print(f"Weather Description in {city}: {description}")
-    else:
-        print("Weather information not available.")
     insrt_table('Weather')   
 
 

@@ -6,6 +6,7 @@ import wikipedia
 import webbrowser
 import randfacts
 import pyjokes
+import requests
 from AppOpener import open, close
 import tkinter as tk
 from threading import Thread
@@ -112,7 +113,6 @@ def openYouTube():
     speak("Opening YouTube...")
     webbrowser.get(chrome_path).open("https://www.youtube.com")
     insrt_table("youtube")
-import requests
 
 def get_weather(city, api_key):
     base_url = "http://api.weatherstack.com/current"
@@ -145,7 +145,7 @@ if __name__ == "__main__":
         print(f"Weather Description in {city}: {description}")
     else:
         print("Weather information not available.")
-        
+    insrt_table('Weather')   
 
 
 def tellJoke():

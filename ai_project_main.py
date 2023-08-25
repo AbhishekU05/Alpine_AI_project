@@ -187,6 +187,171 @@ class voice_assist():
                 return self.query
             elif modl == "report":
                 self.processReport(self.query.lower())
+            processCommand(query.lower())
+    except Exception as e:
+        print(e)
+        print("Say that again please...")
+        speak("Say that again please...")
+        listenForCommand("loop")
+
+
+def openGoogle():
+    speak("What would you like to search")
+    search = listenForCommand("re")
+    search = search.replace(' ','+')
+    webbrowser.get(chrome_path).open("https://www.google.co.in/search?q="+search)
+    insrt_table("google:",search)
+
+
+def openApp():
+    speak("Which app would you like to open")
+    search = listenForCommand("re")
+    search = search.lower()
+    open(search, match_closest=True)
+    speak("Opening", search)
+    print("Opening", search)
+    insrt_table("open",search)
+
+
+def closeApp():
+    speak("Which app would you like to close")
+    search = listenForCommand("re")
+    search = search.lower()
+    close(search, match_closest=True)
+    speak("Closing", search)
+    print("Closing", search)
+    insrt_table("close", search)
+
+
+def searchWikipedia(command):
+    speak('What would you like to search on Wikipedia?')
+    query = listenForCommand("re")
+    speak('Searching Wikipedia...')
+    results = wikipedia.summary(query, sentences=2)
+    speak("According to Wikipedia")
+    print(results)
+    speak(results)
+    update_command = 'INSERT INTO COMMAND_CENTRE VALUES(%d,"%s","%s");' % (
+        datetime.datetime.now().timestamp(), command, query.lower())
+    #print(update_command)
+    cur.execute(update_command)
+    cur.execute('commit')
+
+
+def insrt_table(cmd):
+    update_command = 'INSERT INTO COMMAND_CENTRE VALUES(%d,"%s",NULL);' % (
+        datetime.datetime.now().timestamp(), cmd)
+    #print(update_command)
+    cur.execute(update_command)
+    cur.execute('commit')
+
+
+def openYouTube():
+    speak("Opening YouTube...")
+    webbrowser.get(chrome_path).open("https://www.youtube.com")
+    insrt_table("youtube")
+
+def weather():
+    owm = pyowm.OWM('6cf345bdb3238dcc59d4d0878b3ad803')  # Replace 'your_api_key' with your actual API key
+
+    while True:
+        # Ask the user for the city
+        speak("Which city's weather do you want to know?")
+        city = listenForCommand("re")
+
+        try:
+            observation = owm.weather_at_place(city)
+            weather_data = observation.get_weather()
+            temperature = weather_data.get_temperature(unit='celsius')['temp']
+            status = weather_data.get_status()
+
+            # Print and speak the weather information
+            speak(f"Temperature in {city} is {temperature} degrees Celsius.")
+            speak(f"The weather in {city} is {status}.")
+            print(f"Temperature in {city} is {temperature} degrees Celsius.")
+            print(f"The weather in {city} is {status}.")
+            insrt_table("Weather")
+            break  # Exit the loop since weather information was found
+
+        except pyowm.exceptions.not_found_error.NotFoundError:
+            # Retry or exit
+            speak("Weather information not found for that city. Would you like to try another city?")
+            retry = listenForCommand("re")
+            if "no" in retry.lower():
+                speak("Alright, no weather information retrieved.")
+                break  # Exit the loop if the user doesn't want to try again
+
+    insrt_table('Weather')   
+
+
+def tellJoke():
+    joke = pyjokes.get_joke()
+    speak(joke)
+    print(joke)
+    insrt_table("joke")
+
+
+def tellFact():
+    fact1 = randfacts.get_fact()
+    speak(fact1)
+    print(fact1)
+    insrt_table("fact")
+
+
+def playMusic():
+    speak("Playing music...")
+    webbrowser.get(chrome_path).open("https://open.spotify.com")
+    insrt_table("music")
+
+
+def getTime():
+    strTime = datetime.datetime.now().strftime("%H:%M:%S")
+    speak(f"The time is {strTime}")
+    print(f"The time is {strTime}")
+    insrt_table("time")
+
+
+def getDate():
+    today = datetime.date.today()
+    speak(f"Today's date is {today}")
+    print(f"Today's date is {today}")
+    insrt_table("date")
+
+
+def thankExit():
+    speak("Welcome. Have a nice day. Bye")
+    print("Welcome. Have a nice day. Bye")
+    cur.close()
+    con.close()
+    exit()
+
+
+def showReport():
+    speak('Choose report you would like to see from the following options')
+    print('Choose report you would like to see from the following options:')
+    speak('full data, command frequency, topic frequency')
+    print('1. FULL DATA (TELL "FULL DATA")')
+    print('2. FREQUENCY OF COMMANDS USED (TELL "COMMAND")')
+    print('3. FREQUENCY OF TOPICS USED (TELL "TOPIC")')
+    listenForCommand("report")
+
+
+def processReport(command):
+    if any(ext in command for ext in ['full data', 'command', 'topic']):
+        update_command = 'INSERT INTO COMMAND_CENTRE VALUES(%d,"report","%s");' % (
+            datetime.datetime.now().timestamp(), command)
+        #print(update_command)
+        cur.execute(update_command)
+        cur.execute('commit')
+
+    if 'full data' in command:
+        cur.execute('SELECT * FROM COMMAND_CENTRE;')
+        cur_details = cur.fetchall()
+        print("Time".center(30), "Command".center(30), "Subcommand".center(40))
+        for i in cur_details:
+            if i[2] == 'NULL' or i[2] is None:
+                print(datetime.datetime.fromtimestamp(i[0]).strftime(
+                    '%d/%m/%Y %H:%M:%S').ljust(30), i[1].ljust(30))
             else:
                 self.processCommand(self.query.lower())
         except Exception as e:

@@ -6,6 +6,7 @@ import wikipedia
 import webbrowser
 import randfacts
 import pyjokes
+import pyowm
 from AppOpener import open, close
 import tkinter as tk
 from pathlib import Path
@@ -266,6 +267,41 @@ class voice_assist():
         self.insrt_table("joke")
     
     
+    def weather(self):
+        owm = self.pyowm.OWM('6cf345bdb3238dcc59d4d0878b3ad803')  # Replace 'your_api_key' with your actual API key
+    
+        while True:
+            # Ask the user for the city
+            self.speak("Which city's weather do you want to know?")
+            city = self.listenForCommand("re")
+    
+            try:
+                observation = owm.weather_at_place(city)
+                weather_data = observation.get_weather()
+                temperature = weather_data.get_temperature(unit='celsius')['temp']
+                status = weather_data.get_status()
+    
+                # Print and speak the weather information
+                self.speak(
+                    f"Temperature in {city} is {temperature} degrees Celsius.")
+                self.speak(f"The weather in {city} is {status}.")
+                print(f"Temperature in {city} is {temperature} degrees Celsius.")
+                print(f"The weather in {city} is {status}.")
+                self.insrt_table("Weather")
+                break  # Exit the loop since weather information was found
+    
+            except self.pyowm.exceptions.not_found_error.NotFoundError:
+                # Retry or exit
+                self.speak(
+                    "Weather information not found for that city. Would you like to try another city?")
+                retry = self.listenForCommand("re")
+                if "no" in retry.lower():
+                    self.speak("Alright, no weather information retrieved.")
+                    break  # Exit the loop if the user doesn't want to try again
+    
+        self.insrt_table('Weather')
+    
+    
     def tellFact(self):
         fact1 = randfacts.get_fact()
         self.speak(fact1)
@@ -359,6 +395,7 @@ class voice_assist():
             'play song': 'self.playMusic()',
             'open app': 'self.openApp()',
             'close app': 'self.closeApp()',
+            'weather': 'self.weather()',
             'the time': 'self.getTime()',
             'date': 'self.getDate()',
             'report': 'self.showReport()',

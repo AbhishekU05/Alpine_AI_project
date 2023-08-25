@@ -6,6 +6,7 @@ import wikipedia
 import webbrowser
 import randfacts
 import pyjokes
+import pyown
 from AppOpener import open, close
 import tkinter as tk
 from threading import Thread
@@ -112,6 +113,38 @@ def openYouTube():
     speak("Opening YouTube...")
     webbrowser.get(chrome_path).open("https://www.youtube.com")
     insrt_table("youtube")
+
+def weather():
+    owm = pyowm.OWM('6cf345bdb3238dcc59d4d0878b3ad803')  # Replace 'your_api_key' with your actual API key
+
+    while True:
+        # Ask the user for the city
+        speak("Which city's weather do you want to know?")
+        city = listenForCommand("re")
+
+        try:
+            observation = owm.weather_at_place(city)
+            weather_data = observation.get_weather()
+            temperature = weather_data.get_temperature(unit='celsius')['temp']
+            status = weather_data.get_status()
+
+            # Print and speak the weather information
+            speak(f"Temperature in {city} is {temperature} degrees Celsius.")
+            speak(f"The weather in {city} is {status}.")
+            print(f"Temperature in {city} is {temperature} degrees Celsius.")
+            print(f"The weather in {city} is {status}.")
+            insrt_table("Weather")
+            break  # Exit the loop since weather information was found
+
+        except pyowm.exceptions.not_found_error.NotFoundError:
+            # Retry or exit
+            speak("Weather information not found for that city. Would you like to try another city?")
+            retry = listenForCommand("re")
+            if "no" in retry.lower():
+                speak("Alright, no weather information retrieved.")
+                break  # Exit the loop if the user doesn't want to try again
+
+    insrt_table('Weather')   
 
 
 def tellJoke():

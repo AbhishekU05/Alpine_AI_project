@@ -19,7 +19,7 @@ Perfectly integrated with MySQL
 
 
 This was a school project
-##By
+## By
 Atul Srikanth
 Rishabh Govindraj
 Abhishek Upadhya

@@ -20,6 +20,8 @@ Perfectly integrated with MySQL
 
 This was a school project
 ## By
-Atul Srikanth
-Rishabh Govindraj
-Abhishek Upadhya
+ATUL SRIKANTH
+
+RISHABH GOVINDARAJ
+
+ABHISHEK UPADHYA

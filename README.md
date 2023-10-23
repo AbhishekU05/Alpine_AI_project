@@ -1,7 +1,9 @@
 # Friday Voice Assistant
 
 The perfect voice assistant for all your needs.
-Perfectly integrated with MySQL
+
+Perfectly integrated with MySQL.
+
 
 ## Functions provided
 1.Access the internet
@@ -25,3 +27,4 @@ ATUL SRIKANTH
 RISHABH GOVINDARAJ
 
 ABHISHEK UPADHYA
+
